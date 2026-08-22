@@ -1,16 +1,74 @@
-# React + Vite
+# Yue's Blog
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> 何当共剪西窗烛，却话巴山夜雨时。
 
-Currently, two official plugins are available:
+基于 **React 18 + Vite + GitHub Actions + GitHub Pages** 的自研 Markdown 博客。
+用户只需在 `posts/` 目录下撰写 `.md` 文件并 push，CI 会自动解析 Markdown、构建静态站点并部署上线。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 线上地址
 
-## React Compiler
+<https://yue021130.github.io/Yue021130/>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 写作指南
 
-## Expanding the Oxlint configuration
+1. 在 `posts/` 目录新建 `.md` 文件，文件名即为 URL slug。
+2. 文件开头必须包含 frontmatter：
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```md
+---
+title: 文章标题
+date: 2026-08-22
+excerpt: 文章摘要，会显示在首页列表中。
+---
+
+# 正文
+
+这里开始写 Markdown 内容。
+```
+
+3. 提交并 push 到 `main` 分支：
+
+```bash
+git add posts/xxx.md
+git commit -m "2026年08月22日12点00分 新增文章：xxx"
+git push origin main
+```
+
+4. GitHub Actions 会自动构建并部署，通常 1–3 分钟后可在首页看到新文章。
+
+## 本地开发
+
+```bash
+npm install
+node scripts/build-posts.js
+npm run dev
+```
+
+## 构建生产版本
+
+```bash
+node scripts/build-posts.js
+REPOSITORY_NAME=Yue021130 npm run build
+```
+
+## 评论系统（Giscus）
+
+1. 在仓库 **Settings → General → Features** 中开启 **Discussions**。
+2. 访问 <https://giscus.app>，授权仓库 `Yue021130/Yue021130`。
+3. 选择映射方式 **pathname**，选择一个 Discussion 分类（如 **General**）。
+4. 复制生成的 `categoryId`，替换 `src/components/Giscus.jsx` 中的 `YOUR_CATEGORY_ID_HERE`。
+5. 重新 push 部署即可。
+
+## RSS
+
+订阅地址：<https://yue021130.github.io/Yue021130/feed.xml>
+
+## 技术栈
+
+- React 18 / Vite
+- react-router-dom
+- Tailwind CSS
+- gray-matter + marked
+- highlight.js
+- GitHub Actions + GitHub Pages
+- Giscus
