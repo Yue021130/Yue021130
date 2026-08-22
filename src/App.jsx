@@ -1,122 +1,79 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
+import { useEffect } from 'react';
+import Home from './pages/Home';
+import Post from './pages/Post';
 
-function App() {
-  const [count, setCount] = useState(0)
+function RedirectHandler() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+  useEffect(() => {
+    const redirectPath = searchParams.get('p');
+    if (redirectPath) {
+      navigate(redirectPath, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  return null;
 }
 
-export default App
+function Layout() {
+  return (
+    <div className="min-h-screen flex flex-col bg-white">
+      <RedirectHandler />
+      <header className="border-b border-gray-200">
+        <div className="max-w-3xl mx-auto px-6 py-6 flex items-center justify-between">
+          <Link to="/" className="text-xl font-bold text-gray-900 hover:text-blue-600">
+            Yue's Blog
+          </Link>
+          <nav>
+            <a
+              href="https://github.com/Yue021130/Yue021130"
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              GitHub
+            </a>
+          </nav>
+        </div>
+      </header>
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/post/:slug/*" element={<Post />} />
+          <Route
+            path="*"
+            element={
+              <div className="max-w-3xl mx-auto px-6 py-20 text-center">
+                <h1 className="text-4xl font-bold mb-4">404</h1>
+                <p className="text-gray-600 mb-6">页面不存在</p>
+                <Link to="/" className="text-blue-600 hover:underline">
+                  返回首页
+                </Link>
+              </div>
+            }
+          />
+        </Routes>
+      </main>
+      <footer className="border-t border-gray-200 py-6 text-center text-sm text-gray-500">
+        © {new Date().getFullYear()} Yue's Blog. Powered by React + Vite + GitHub Pages.
+      </footer>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter basename="/Yue021130">
+      <Layout />
+    </BrowserRouter>
+  );
+}
