@@ -9,6 +9,14 @@
 
 <https://yue021130.github.io/Yue021130/>
 
+## 启用 GitHub Pages
+
+1. 进入仓库 **Settings → Pages → Source**。
+2. 选择 **GitHub Actions**。
+3. push 任意改动触发工作流后，站点会自动部署。
+
+> 之前若已生成 `gh-pages` 分支，可前往 **Branches** 将其删除；本方案不再依赖该分支。
+
 ## 写作指南
 
 1. 在 `posts/` 目录新建 `.md` 文件，文件名即为 URL slug。
