@@ -8,9 +8,9 @@
     <lastBuildDate>Sun, 23 Aug 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://yue021130.github.io/Yue021130/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>react</title>
-      <link>https://yue021130.github.io/Yue021130/post/前端/react</link>
-      <guid>https://yue021130.github.io/Yue021130/post/前端/react</guid>
+      <title>useEffect副作用</title>
+      <link>https://yue021130.github.io/Yue021130/post/前端/react/useEffect副作用</link>
+      <guid>https://yue021130.github.io/Yue021130/post/前端/react/useEffect副作用</guid>
       <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
       <description>useEffect 与副作用学习笔记 基于 04-lifecycle 项目中的 Timer、DataFetchDemo、DependencyTrap 整理。 一、useEffect 的执行时机useEffect 在每次渲染完成后执行，具体时机由依赖数组决定。 依赖数组 setup 何时执行 cleanup 何时执行 不…</description>
     </item>
