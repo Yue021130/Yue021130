@@ -9,6 +9,7 @@ import {
 import { useEffect } from 'react';
 import Home from './pages/Home';
 import Post from './pages/Post';
+import Archive from './pages/Archive';
 
 function RedirectHandler() {
   const [searchParams] = useSearchParams();
@@ -37,7 +38,14 @@ function Layout() {
           >
             Yue's Blog
           </Link>
-          <nav>
+          <nav className="flex items-center gap-6">
+            <Link
+              to="/archive"
+              className="text-sm hover:underline"
+              style={{ color: '#5a5752' }}
+            >
+              归档
+            </Link>
             <a
               href="https://github.com/Yue021130/Yue021130"
               target="_blank"
@@ -53,6 +61,7 @@ function Layout() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/archive" element={<Archive />} />
           <Route path="/post/*" element={<Post />} />
           <Route
             path="*"

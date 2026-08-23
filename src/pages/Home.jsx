@@ -96,9 +96,16 @@ export default function Home() {
       >
         文章目录
       </h1>
-      <p className="mb-10" style={{ color: '#5a5752' }}>
+      <p className="mb-2" style={{ color: '#5a5752' }}>
         按菜单层级浏览所有内容。
       </p>
+      <Link
+        to="/archive"
+        className="text-sm hover:underline mb-10 inline-block"
+        style={{ color: '#2563eb' }}
+      >
+        按时间归档 →
+      </Link>
 
       {posts.length === 0 ? (
         <p style={{ color: '#8a8680' }}>
