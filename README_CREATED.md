@@ -12,6 +12,7 @@
 - 评论系统基于 **Giscus**（GitHub Discussions）。
 - 代码高亮基于 **highlight.js**。
 - 自动生成 **RSS feed**（`public/feed.xml`）。
+- 支持**全文搜索**（`/search`），可搜索标题、摘要、Markdown 正文。
 - 帖子文件夹内的图片/资源会自动复制并重写路径。
 - 文章页支持目录（TOC）、标题锚点、面包屑、高亮文字（`==text==`）。
 
@@ -49,6 +50,7 @@
 │   └── pages/
 │       ├── Home.jsx               # 三级菜单树首页
 │       ├── Archive.jsx            # 按年月归档
+│       ├── Search.jsx             # 全文搜索
 │       └── Post.jsx               # 文章详情（含面包屑、目录、HTML iframe）
 ├── index.html
 ├── package.json
@@ -203,6 +205,15 @@ REPOSITORY_NAME=Yue021130 npm run build
 ## 按时间归档
 
 访问 `/archive` 可查看按年月分组的文章列表。`build-posts.js` 在构建时从每篇文章的 `date` 字段提取年份和月份，前端直接按分组渲染。
+
+## 全文搜索
+
+访问 `/search` 或点击顶部导航的"搜索"进入搜索页。
+
+- 支持多个关键词，用空格分隔（必须同时命中）。
+- 搜索范围：标题、摘要、Markdown 正文。
+- HTML 类型文章只能搜索标题和摘要（HTML 正文不进入 `posts.json`）。
+- 命中关键词会高亮显示，结果按相关性排序：标题命中权重最高，摘要次之，正文再次之。
 
 ## RSS 订阅
 

@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import Home from './pages/Home';
 import Post from './pages/Post';
 import Archive from './pages/Archive';
+import Search from './pages/Search';
 
 function RedirectHandler() {
   const [searchParams] = useSearchParams();
@@ -46,6 +47,13 @@ function Layout() {
             >
               归档
             </Link>
+            <Link
+              to="/search"
+              className="text-sm hover:underline"
+              style={{ color: '#5a5752' }}
+            >
+              搜索
+            </Link>
             <a
               href="https://github.com/Yue021130/Yue021130"
               target="_blank"
@@ -62,6 +70,7 @@ function Layout() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/archive" element={<Archive />} />
+          <Route path="/search" element={<Search />} />
           <Route path="/post/*" element={<Post />} />
           <Route
             path="*"
