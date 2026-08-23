@@ -1,6 +1,6 @@
 import { useParams, Link, useLocation } from 'react-router-dom';
 import posts from '../posts.json';
-import GiscusComments from '../components/Giscus';
+// import GiscusComments from '../components/Giscus';
 
 export default function Post() {
   const { slug } = useParams();
@@ -32,7 +32,7 @@ export default function Post() {
         className="post-content"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
-      <GiscusComments />
+      {/* <GiscusComments /> */}
     </article>
   );
 }
