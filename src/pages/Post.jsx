@@ -51,11 +51,35 @@ function TableOfContents({ content }) {
   );
 }
 
+function Breadcrumb({ path }) {
+  return (
+    <nav className="text-sm mb-6" style={{ color: '#8a8680' }}>
+      <Link to="/" className="hover:underline" style={{ color: '#2563eb' }}>
+        首页
+      </Link>
+      {path.map((part, index) => (
+        <span key={index}>
+          <span className="mx-2">/</span>
+          <span style={{ color: '#5a5752' }}>{part}</span>
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 export default function Post() {
-  const { slug } = useParams();
+  const routeParams = useParams();
   const location = useLocation();
-  const fullSlug = location.pathname.replace(/^.*\/post\//, '').replace(/\/$/, '');
-  const post = posts.find((p) => p.slug === slug || p.slug === fullSlug);
+
+  // routeParams['*'] is URL-decoded path after /post/
+  const routePath = (routeParams['*'] || '').replace(/\/$/, '');
+  const pathnameSlug = decodeURIComponent(
+    location.pathname.replace(/^.*\/post\//, '').replace(/\/$/, '')
+  );
+
+  const post =
+    posts.find((p) => p.slug === routePath) ||
+    posts.find((p) => p.slug === pathnameSlug);
 
   if (!post) {
     return (
@@ -73,12 +97,7 @@ export default function Post() {
     <div className="max-w-6xl mx-auto px-6 py-12 flex gap-10">
       <TableOfContents content={post.content} />
       <article className="flex-1 min-w-0 max-w-3xl">
-        <Link
-          to="/"
-          className="text-sm text-[#2563eb] hover:underline mb-6 inline-block"
-        >
-          ← 返回列表
-        </Link>
+        <Breadcrumb path={post.path} />
         <h1 className="text-3xl md:text-4xl font-serif font-semibold text-[#1a1a1a] mb-4">
           {post.title}
         </h1>

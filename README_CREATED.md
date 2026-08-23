@@ -1,16 +1,18 @@
 # Yue's Blog — 项目说明
 
-> 基于 **React 19 + Vite + GitHub Actions + GitHub Pages** 的 Markdown 博客。
+> 基于 **React 19 + Vite + GitHub Actions + GitHub Pages** 的 Markdown/HTML 静态博客。
 
 ## 核心设计
 
-- 用户日常只操作 `posts/` 目录，push `.md` 后全自动构建、部署。
-- Markdown 在**构建时**解析为 HTML，生成 `src/posts.json`。
+- 用户日常只操作 `posts/` 目录，push 后全自动构建、部署。
+- `posts/` 采用**三级菜单目录结构**：一级菜单 / 二级菜单 / 帖子文件夹。
+- Markdown 在**构建时**解析为 HTML；也支持直接放 `.html` 文件。
+- 构建脚本生成 `src/posts.json`，首页据此渲染可展开的三级菜单树。
 - 评论系统基于 **Giscus**（GitHub Discussions）。
 - 代码高亮基于 **highlight.js**。
 - 自动生成 **RSS feed**（`public/feed.xml`）。
-- 支持 `posts/` 目录内图片自动复制与路径重写。
-- 文章页支持目录（TOC）、标题锚点、高亮文字（`==text==`）。
+- 帖子文件夹内的图片/资源会自动复制并重写路径。
+- 文章页支持目录（TOC）、标题锚点、面包屑、高亮文字（`==text==`）。
 
 ## 仓库结构
 
@@ -18,13 +20,20 @@
 .
 ├── .github/workflows/deploy.yml   # CI/CD：构建并部署到 gh-pages 分支
 ├── posts/                         # 用户只操作这个目录
-│   ├── hello-world.md
-│   ├── hello-world-cover.png
-│   └── e2e-test.md
+│   ├── 一级菜单/
+│   │   ├── 二级菜单/
+│   │   │   ├── 帖子标题 1/
+│   │   │   │   ├── index.md       # 或任意 .md / .html
+│   │   │   │   └── 图片.png
+│   │   │   └── 帖子标题 2/
+│   │   │       ├── index.md
+│   │   │       └── 截图.jpg
+│   │   └── ...
+│   └── ...
 ├── public/                        # 静态资源
-│   └── images/                    # 直接提交的图片，或构建时从 posts/ 复制过来的图片
+│   └── images/posts/              # 构建产物：从 posts/ 复制过来的图片
 ├── scripts/
-│   └── build-posts.js             # 解析 Markdown，生成 src/posts.json 和 public/feed.xml
+│   └── build-posts.js             # 解析 posts/，生成 src/posts.json 和 public/feed.xml
 ├── src/
 │   ├── App.jsx
 │   ├── components/
@@ -32,8 +41,8 @@
 │   ├── index.css                  # 全局 + 文章排版样式
 │   ├── main.jsx
 │   ├── pages/
-│   │   ├── Home.jsx               # 文章列表
-│   │   └── Post.jsx               # 文章详情（含目录）
+│   │   ├── Home.jsx               # 三级菜单树首页
+│   │   └── Post.jsx               # 文章详情（含面包屑、目录）
 │   └── posts.json                 # 构建产物，gitignore
 ├── index.html
 ├── package.json
@@ -52,67 +61,85 @@ npm run dev
 
 ## 写作规范
 
-### 新建文章
+### 目录结构
 
-1. 在 `posts/` 下新建 `.md` 文件，文件名即为 URL slug。
-2. 文件开头必须包含 frontmatter：
+每个帖子必须是一个**三级目录下的叶子文件夹**，文件夹名字就是展示标题：
+
+```
+posts/
+├── React/                         # 一级菜单
+│   ├── 基础/                       # 二级菜单
+│   │   └── JSX 入门/               # 三级：帖子文件夹
+│   │       ├── index.md
+│   │       └── 截图.png
+│   └── Hooks/
+│       └── useRef 详解/
+│           ├── index.md
+│           └── 流程图.png
+└── 生活/
+    └── 随笔/
+        └── 2026 年总结/
+            └── index.md
+```
+
+### 内容文件规则
+
+叶子文件夹里可以有：
+
+- `index.md`（最优先）
+- 任意 `.md` 文件（没有 `index.md` 时取第一个）
+- 任意 `.html` 文件（没有 Markdown 时支持纯 HTML）
+- 帖子用到的图片、附件等
+
+### Markdown 示例
 
 ```md
 ---
-title: 文章标题
+title: useRef 详解
 date: 2026-08-22
-excerpt: 显示在首页列表的摘要。
+excerpt: 掌握 useRef 的用法与注意事项。
 ---
 
-# 正文
+# useRef
 
-这里写 Markdown。
+==这是重点内容==，会高亮显示。
+
+```js
+const ref = useRef(null);
 ```
 
-3. 提交并 push：
-
-```bash
-git add posts/xxx.md
-git commit -m "....."
-git push origin main
+![流程图](./流程图.png)
 ```
+
+### 静态 HTML
+
+直接把 `.html` 文件放进叶子文件夹即可。标题优先读取 `<title>` 标签，否则使用文件夹名。
 
 ### 图片
 
-#### 方式一：与文章放在一起（推荐）
-
-把图片放在 `posts/` 目录下，和 `.md` 文件同级或子目录中，用相对路径引用：
+图片放在帖子文件夹内，用相对路径引用：
 
 ```md
-![封面](./hello-world-cover.png)
-![截图](./images/screenshot.png)
+![流程图](./流程图.png)
 ```
 
-构建脚本会自动复制到 `public/images/posts/` 并重写路径。
-
-#### 方式二：直接放在 public/images/
-
-适合全站共用的图片：
-
-```md
-![logo](/Yue021130/images/logo.png)
-```
+构建时会自动复制到 `public/images/posts/<slug>/`，并重写为线上可用路径。
 
 ### 高亮文字
-
-使用 `==高亮内容==` 语法，会渲染成黄色高亮背景。
 
 ```md
 ==这是重点==
 ```
 
-### 代码块
+### 提交与部署
 
-支持 `highlight.js` 自动识别语言，推荐显式标注：
-
-```js
-console.log('hello');
+```bash
+git add posts/
+git commit -m "2026年08月22日12点00分 新增文章：useRef 详解"
+git push origin main
 ```
+
+GitHub Actions 会自动构建并推送到 `gh-pages` 分支。
 
 ## 构建生产版本
 
@@ -129,6 +156,17 @@ REPOSITORY_NAME=Yue021130 npm run build
 2. 分支选择 **`gh-pages`**，保存。
 3. push 到 `main` 后，GitHub Actions 会自动构建并推送到 `gh-pages` 分支。
 
+## Giscus 评论配置
+
+当前配置：
+
+- repo: `Yue021130/Yue021130`
+- repoId: `R_kgDOUAw2LQ`
+- category: `Show and tell`
+- categoryId: `DIC_kwDOUAw2Lc4DD9P-`
+- mapping: `pathname`
+
+如需修改，编辑 `src/components/Giscus.jsx` 中的 `GISCUS_CONFIG`。
 
 ## RSS 订阅
 
