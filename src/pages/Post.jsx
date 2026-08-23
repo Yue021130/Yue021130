@@ -147,6 +147,19 @@ export default function Post() {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         )}
+        {!isHtml && post.snapshots && post.snapshots.length > 0 && (
+          <section className="mt-16">
+            <h2 className="text-xl font-semibold text-[#1a1a1a] mb-6">博文快照</h2>
+            <div className="space-y-8">
+              {post.snapshots.map((file) => (
+                <div key={file}>
+                  <p className="text-sm text-[#5a5752] mb-2">{file}</p>
+                  <HtmlSnapshot slug={post.slug} contentFile={file} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         <GiscusComments />
       </article>
     </div>

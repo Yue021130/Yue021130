@@ -101,22 +101,28 @@ function createRenderer(postDirRel) {
   return renderer;
 }
 
-function findContentFile(dir) {
+function findContentFiles(dir) {
   const files = fs.readdirSync(dir).filter((name) => {
     const full = path.join(dir, name);
     return fs.statSync(full).isFile();
   });
 
+  const htmlFiles = files.filter((f) => f.toLowerCase().endsWith('.html'));
+
   const indexMd = files.find((f) => f.toLowerCase() === 'index.md');
-  if (indexMd) return indexMd;
+  if (indexMd) {
+    return { contentFile: indexMd, snapshots: htmlFiles.filter((f) => f !== indexMd) };
+  }
 
   const md = files.find((f) => f.toLowerCase().endsWith('.md'));
-  if (md) return md;
+  if (md) {
+    return { contentFile: md, snapshots: htmlFiles.filter((f) => f !== md) };
+  }
 
-  const html = files.find((f) => f.toLowerCase().endsWith('.html'));
-  if (html) return html;
+  const html = htmlFiles[0];
+  if (html) return { contentFile: html, snapshots: htmlFiles.filter((f) => f !== html) };
 
-  return null;
+  return { contentFile: null, snapshots: [] };
 }
 
 function findPostFolders(dir) {
@@ -128,9 +134,9 @@ function findPostFolders(dir) {
     const stat = fs.statSync(full);
     if (!stat.isDirectory()) continue;
 
-    const contentFile = findContentFile(full);
+    const { contentFile, snapshots } = findContentFiles(full);
     if (contentFile) {
-      result.push({ dir: full, contentFile });
+      result.push({ dir: full, contentFile, snapshots });
     } else {
       result.push(...findPostFolders(full));
     }
@@ -216,8 +222,24 @@ const postFolders = findPostFolders(postsDir);
 
 const validationErrors = [];
 
+function copySnapshots(postDir, slug, snapshots) {
+  if (!snapshots || snapshots.length === 0) return [];
+  const destDir = path.join(htmlPostsDestDir, slug);
+  fs.mkdirSync(destDir, { recursive: true });
+  const copied = [];
+  for (const name of snapshots) {
+    const full = path.join(postDir, name);
+    if (!fs.existsSync(full)) continue;
+    let raw = fs.readFileSync(full, 'utf-8');
+    raw = extractBase64Images(raw, slug);
+    fs.writeFileSync(path.join(destDir, name), raw, 'utf-8');
+    copied.push(name);
+  }
+  return copied;
+}
+
 const posts = postFolders
-  .map(({ dir, contentFile }) => {
+  .map(({ dir, contentFile, snapshots }) => {
     const contentPath = path.join(dir, contentFile);
     const relativeDir = path.relative(postsDir, dir);
     const slug = toPosix(relativeDir);
@@ -231,6 +253,7 @@ const posts = postFolders
     let html;
 
     let contentFileName = contentFile;
+    let snapshotFiles = [];
 
     if (isHtml) {
       let raw = fs.readFileSync(contentPath, 'utf-8');
@@ -242,6 +265,7 @@ const posts = postFolders
       const { destDir } = copyHtmlPostFolder(dir, slug, contentFile);
       // 覆盖复制后的 HTML，确保内嵌 base64 图片也被替换为线上路径
       fs.writeFileSync(path.join(destDir, contentFile), raw, 'utf-8');
+      snapshotFiles = snapshots;
     } else {
       const raw = fs.readFileSync(contentPath, 'utf-8');
       const parsed = matter(raw);
@@ -265,6 +289,7 @@ const posts = postFolders
       excerpt =
         parsed.data.excerpt || stripHtml(html).slice(0, 160).replace(/\s+$/, '') + '…';
       copyPostAssets(dir, slug);
+      snapshotFiles = copySnapshots(dir, slug, snapshots);
     }
 
     return {
@@ -276,6 +301,7 @@ const posts = postFolders
       type: isHtml ? 'html' : 'md',
       ...(isHtml ? {} : { content: html }),
       contentFile: contentFileName,
+      ...(snapshotFiles.length > 0 ? { snapshots: snapshotFiles } : {}),
     };
   })
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

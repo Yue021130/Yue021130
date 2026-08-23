@@ -127,6 +127,26 @@ HTML 快照会被整体复制到 `public/posts-html/<slug>/`，文章页通过 `
 - 相对路径引用的图片/资源能正常解析。
 - 博客主 bundle 不膨胀，因为 HTML 内容不会塞进 `posts.json`。
 
+### Markdown + HTML 快照混合
+
+一个帖子文件夹里可以同时放 Markdown 正文和 HTML 快照：
+
+```
+posts/
+└── 示例/
+    └── 测试/
+        └── 端到端测试/
+            ├── index.md          # 主文章（正文、frontmatter）
+            └── 原始页面.html      # HTML 快照附件
+```
+
+构建规则：
+
+- 优先把 `.md` 当作主文章。
+- 同一文件夹里的 `.html` 会被视为**快照附件**，复制到 `public/posts-html/<slug>/`。
+- `posts.json` 里该文章会多一个 `snapshots: ["原始页面.html"]` 字段。
+- 文章详情页会在 Markdown 正文下方展示"博文快照"区块，用 iframe 加载这些 HTML。
+
 ### 图片
 
 图片放在帖子文件夹内，用相对路径引用：
