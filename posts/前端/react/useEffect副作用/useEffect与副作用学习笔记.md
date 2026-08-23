@@ -1,3 +1,7 @@
+![488B757EDDABD0C3B99C6D57CDCFCCCE](488B757EDDABD0C3B99C6D57CDCFCCCE.png)
+
+
+
 # useEffect 与副作用学习笔记
 
 > 基于 `04-lifecycle` 项目中的 `Timer`、`DataFetchDemo`、`DependencyTrap` 整理。
