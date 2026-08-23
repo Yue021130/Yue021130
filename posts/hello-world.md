@@ -6,6 +6,8 @@ excerpt: 这是第一篇示例文章，用来验证 Markdown 构建脚本与 Rea
 
 # Hello World
 
+![封面](./hello-world-cover.png)
+
 欢迎来到自研 Markdown 博客！
 
 ## 特性

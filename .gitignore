@@ -26,3 +26,4 @@ dist-ssr
 # Build artifacts
 src/posts.json
 public/feed.xml
+public/images/posts

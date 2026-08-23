@@ -44,6 +44,29 @@ git push origin main
 
 4. GitHub Actions 会自动构建并部署，通常 1–3 分钟后可在首页看到新文章。
 
+## 图片用法
+
+### 方式一：和文章放在一起（推荐）
+
+把图片放在 `posts/` 目录下，和 `.md` 文件同级或子目录中，用相对路径引用：
+
+```md
+![封面](./hello-world-cover.png)
+![配图](./images/screenshot.png)
+```
+
+构建脚本会自动把这些图片复制到 `public/images/posts/`，并自动把 Markdown 里的路径改写成线上可用的绝对路径。
+
+### 方式二：放在 `public/images/` 目录
+
+适合全站共用的图片，例如 logo、头像：
+
+```md
+![logo](/Yue021130/images/logo.png)
+```
+
+然后直接把图片提交到 `public/images/logo.png`。
+
 ## 本地开发
 
 ```bash

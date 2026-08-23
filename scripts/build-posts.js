@@ -11,7 +11,9 @@ const __dirname = path.dirname(__filename);
 const postsDir = path.resolve(__dirname, '../posts');
 const outputPath = path.resolve(__dirname, '../src/posts.json');
 const feedPath = path.resolve(__dirname, '../public/feed.xml');
-const siteUrl = 'https://yue021130.github.io/Yue021130';
+const assetsDestDir = path.resolve(__dirname, '../public/images/posts');
+const basePath = '/Yue021130';
+const siteUrl = `https://yue021130.github.io${basePath}`;
 
 marked.setOptions({
   highlight: (code, lang) => {
@@ -27,19 +29,23 @@ marked.setOptions({
   langPrefix: 'hljs language-',
 });
 
-function walk(dir) {
+function walk(dir, predicate = () => true) {
   const entries = [];
   if (!fs.existsSync(dir)) return entries;
   for (const name of fs.readdirSync(dir)) {
     const full = path.join(dir, name);
     const stat = fs.statSync(full);
     if (stat.isDirectory()) {
-      entries.push(...walk(full));
-    } else if (stat.isFile() && name.endsWith('.md')) {
+      entries.push(...walk(full, predicate));
+    } else if (stat.isFile() && predicate(full)) {
       entries.push(full);
     }
   }
   return entries;
+}
+
+function toPosix(p) {
+  return p.replace(/\\/g, '/');
 }
 
 function stripHtml(html) {
@@ -70,15 +76,61 @@ function escapeXml(text) {
     .replace(/'/g, '&apos;');
 }
 
-const files = walk(postsDir);
+function isExternalUrl(href) {
+  return /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(href);
+}
 
-const posts = files
+function rewriteImageHref(href, postRelPosix) {
+  if (!href || isExternalUrl(href) || href.startsWith('/')) {
+    return href;
+  }
+  const postDir = path.posix.dirname(postRelPosix);
+  const assetRel = path.posix.normalize(`${postDir}/${href}`);
+  return `${basePath}/images/posts/${assetRel}`;
+}
+
+function createRenderer(postRelPosix) {
+  const defaultImage = marked.Renderer.prototype.image;
+  const renderer = new marked.Renderer();
+  renderer.image = function (token) {
+    token.href = rewriteImageHref(token.href, postRelPosix);
+    return defaultImage.call(this, token);
+  };
+  return renderer;
+}
+
+// Copy post assets to public/images/posts/
+if (fs.existsSync(assetsDestDir)) {
+  fs.rmSync(assetsDestDir, { recursive: true, force: true });
+}
+
+const assetFiles = walk(
+  postsDir,
+  (file) => !file.toLowerCase().endsWith('.md')
+);
+
+for (const file of assetFiles) {
+  const rel = toPosix(path.relative(postsDir, file));
+  const dest = path.join(assetsDestDir, rel);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.copyFileSync(file, dest);
+}
+
+if (assetFiles.length > 0) {
+  console.log(`Copied ${assetFiles.length} asset(s) to ${toPosix(path.relative(__dirname, assetsDestDir))}.`);
+}
+
+const mdFiles = walk(postsDir, (file) => file.toLowerCase().endsWith('.md'));
+
+const posts = mdFiles
   .map((file) => {
     const raw = fs.readFileSync(file, 'utf-8');
     const parsed = matter(raw);
     const relative = path.relative(postsDir, file);
-    const slug = relative.replace(/\.md$/i, '').replace(/\\/g, '/');
-    const html = marked.parse(parsed.content, { async: false });
+    const relPosix = toPosix(relative);
+    const slug = relPosix.replace(/\.md$/i, '');
+    const renderer = createRenderer(relPosix);
+    const html = marked.parse(parsed.content, { renderer, async: false });
     const title = parsed.data.title || slug;
     const date = formatDate(parsed.data.date || fs.statSync(file).mtime);
     const excerpt =
