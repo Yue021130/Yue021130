@@ -1,24 +1,44 @@
-import Giscus from '@giscus/react';
+import { useEffect, useRef } from 'react';
 
 const GISCUS_CONFIG = {
-  repo: 'Yue021130/Yue021130',
-  repoId: 'R_kgDOUAw2LQ',
-  category: 'Show and tell',
-  categoryId: 'DIC_kwDOUAw2Lc4DD9P-',
-  mapping: 'pathname',
-  strict: '0',
-  reactionsEnabled: '1',
-  emitMetadata: '0',
-  inputPosition: 'top',
-  theme: 'preferred_color_scheme',
-  lang: 'zh-CN',
-  loading: 'lazy',
+  src: 'https://giscus.app/client.js',
+  'data-repo': 'Yue021130/Yue021130',
+  'data-repo-id': 'R_kgDOUAw2LQ',
+  'data-category': 'Show and tell',
+  'data-category-id': 'DIC_kwDOUAw2Lc4DD9P-',
+  'data-mapping': 'pathname',
+  'data-strict': '0',
+  'data-reactions-enabled': '1',
+  'data-emit-metadata': '0',
+  'data-input-position': 'top',
+  'data-theme': 'preferred_color_scheme',
+  'data-lang': 'zh-CN',
+  'data-loading': 'lazy',
+  crossorigin: 'anonymous',
+  async: true,
 };
 
 export default function GiscusComments() {
-  return (
-    <div className="mt-12">
-      <Giscus {...GISCUS_CONFIG} />
-    </div>
-  );
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Clear previous giscus element to avoid duplicates on route changes
+    container.innerHTML = '';
+
+    const script = document.createElement('script');
+    Object.entries(GISCUS_CONFIG).forEach(([key, value]) => {
+      script.setAttribute(key, value);
+    });
+
+    container.appendChild(script);
+
+    return () => {
+      container.innerHTML = '';
+    };
+  }, []);
+
+  return <div ref={containerRef} className="giscus mt-12" />;
 }
