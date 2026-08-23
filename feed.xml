@@ -9,15 +9,15 @@
     <atom:link href="https://yue021130.github.io/Yue021130/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>端到端测试文章</title>
-      <link>https://yue021130.github.io/Yue021130/post/e2e-test</link>
-      <guid>https://yue021130.github.io/Yue021130/post/e2e-test</guid>
+      <link>https://yue021130.github.io/Yue021130/post/示例/测试/端到端测试</link>
+      <guid>https://yue021130.github.io/Yue021130/post/示例/测试/端到端测试</guid>
       <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
       <description>这是用于端到端测试的文章，验证 push 后 CI 能自动构建并部署到 GitHub Pages。</description>
     </item>
     <item>
       <title>Hello World</title>
-      <link>https://yue021130.github.io/Yue021130/post/hello-world</link>
-      <guid>https://yue021130.github.io/Yue021130/post/hello-world</guid>
+      <link>https://yue021130.github.io/Yue021130/post/示例/测试/Hello World</link>
+      <guid>https://yue021130.github.io/Yue021130/post/示例/测试/Hello World</guid>
       <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
       <description>这是第一篇示例文章，用来验证 Markdown 构建脚本与 React 页面是否能正常工作。</description>
     </item>
