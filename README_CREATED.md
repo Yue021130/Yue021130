@@ -1,6 +1,6 @@
 # Yue's Blog — 项目说明
 
-> 基于 **React 18/19 + Vite + GitHub Actions + GitHub Pages** 的自研 Markdown 博客。
+> 基于 **React 19 + Vite + GitHub Actions + GitHub Pages** 的 Markdown 博客。
 
 ## 核心设计
 
@@ -73,7 +73,7 @@ excerpt: 显示在首页列表的摘要。
 
 ```bash
 git add posts/xxx.md
-git commit -m "2026年08月22日12点00分 新增文章：xxx"
+git commit -m "....."
 git push origin main
 ```
 
@@ -129,17 +129,6 @@ REPOSITORY_NAME=Yue021130 npm run build
 2. 分支选择 **`gh-pages`**，保存。
 3. push 到 `main` 后，GitHub Actions 会自动构建并推送到 `gh-pages` 分支。
 
-## Giscus 评论配置
-
-当前配置：
-
-- repo: `Yue021130/Yue021130`
-- repoId: `R_kgDOUAw2LQ`
-- category: `Show and tell`
-- categoryId: `DIC_kwDOUAw2Lc4DD9P-`
-- mapping: `pathname`
-
-如需修改，编辑 `src/components/Giscus.jsx` 中的 `GISCUS_CONFIG`。
 
 ## RSS 订阅
 
