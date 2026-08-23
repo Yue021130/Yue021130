@@ -1,0 +1,57 @@
+[
+  {
+    "slug": "前端/react/useEffect副作用",
+    "title": "useEffect 与副作用学习笔记",
+    "date": "2026-08-23",
+    "excerpt": "基于 04-lifecycle 项目中的 Timer、DataFetchDemo、DependencyTrap 整理，掌握 useEffect 执行时机与 cleanup。",
+    "path": [
+      "前端",
+      "react",
+      "useEffect副作用"
+    ],
+    "type": "md",
+    "content": "<p><img src=\"/Yue021130/images/posts/%E5%89%8D%E7%AB%AF/react/useEffect%E5%89%AF%E4%BD%9C%E7%94%A8/488B757EDDABD0C3B99C6D57CDCFCCCE.png\" alt=\"488B757EDDABD0C3B99C6D57CDCFCCCE\"></p>\n<h1 id=\"useEffect-与副作用学习笔记\">useEffect 与副作用学习笔记</h1><blockquote>\n<p>基于 <code>04-lifecycle</code> 项目中的 <code>Timer</code>、<code>DataFetchDemo</code>、<code>DependencyTrap</code> 整理。</p>\n</blockquote>\n<hr>\n<h2 id=\"一useEffect-的执行时机\">一、useEffect 的执行时机</h2><p><code>useEffect</code> 在<strong>每次渲染完成后</strong>执行，具体时机由依赖数组决定。</p>\n<table>\n<thead>\n<tr>\n<th>依赖数组</th>\n<th>setup 何时执行</th>\n<th>cleanup 何时执行</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>不写</td>\n<td>每次渲染后都执行</td>\n<td>每次重新执行 effect 前执行，卸载时也执行</td>\n</tr>\n<tr>\n<td><code>[]</code></td>\n<td>只在第一次渲染后执行（mount）</td>\n<td>只在卸载前执行（unmount）</td>\n</tr>\n<tr>\n<td><code>[a, b]</code></td>\n<td>依赖变化后的那次渲染执行</td>\n<td>每次重新执行 effect 前执行，卸载时也执行</td>\n</tr>\n</tbody></table>\n<hr>\n<h2 id=\"二Timer-组件展示-mount--update--unmount\">二、Timer 组件：展示 mount / update / unmount</h2><h3 id=\"完整生命周期流程\">完整生命周期流程</h3><pre><code class=\"language-text\">挂载 Timer\n    ↓\nuseEffect([], fn) 执行 setup\n    ↓\n打印 mount 日志，启动 setInterval\n    ↓\n每秒 setSeconds(s =&gt; s + 1)\n    ↓\nseconds 变化 → 组件重新渲染\n    ↓\nuseEffect([seconds], fn) 执行，打印 update 日志\n    ↓\n点击卸载\n    ↓\nuseEffect([], fn) 的 cleanup 执行\n    ↓\nclearInterval 停止定时器，打印 unmount 日志\n</code></pre>\n<hr>\n<h2 id=\"三useRef-与-intervalRefcurrent\">三、useRef 与 intervalRef.current</h2><h3 id=\"useRef-是什么\">useRef 是什么？</h3><pre><code class=\"language-jsx\">const intervalRef = useRef(null);\n</code></pre>\n<p><code>intervalRef</code> 是一个对象：</p>\n<pre><code class=\"language-js\">{\n  current: null\n}\n</code></pre>\n<h3 id=\"为什么要用-useRef\">为什么要用 useRef？</h3><p>普通变量每次渲染<mark>都会<strong>重置</strong></mark>：</p>\n<pre><code class=\"language-jsx\">function Timer() {\n  let intervalId = null; // 每次渲染都变回 null\n\n  useEffect(() =&gt; {\n    intervalId = setInterval(...);\n  }, []);\n  // 下一次渲染 intervalId 又是 null\n}\n</code></pre>\n<p><code>useRef</code> 的值在多次渲染之间保持不变：</p>\n<pre><code class=\"language-jsx\">function Timer() {\n  const intervalRef = useRef(null); // 同一个对象\n\n  useEffect(() =&gt; {\n    intervalRef.current = setInterval(...);\n  }, []);\n  // 下一次渲染，intervalRef.current 还是上一次的 id\n}\n</code></pre>\n<h3 id=\"特点\">特点</h3><ul>\n<li>修改 <code>intervalRef.current</code> <strong>不会触发重新渲染</strong></li>\n<li>适合保存：定时器 id、DOM 引用、上一轮 state 等跨渲染需要保留的值</li>\n</ul>\n<h3 id=\"完整示例\">完整示例</h3><pre><code class=\"language-jsx\">const intervalRef = useRef(null);\n\nuseEffect(() =&gt; {\n  // setInterval 返回数字 id\n  intervalRef.current = setInterval(() =&gt; {\n    setSeconds(s =&gt; s + 1);\n  }, 1000);\n\n  // 卸载时用这个 id 清理\n  return () =&gt; {\n    clearInterval(intervalRef.current);\n  };\n}, []);\n</code></pre>\n<hr>\n<h2 id=\"四setInterval-做了什么\">四、setInterval 做了什么？</h2><pre><code class=\"language-js\">intervalRef.current = setInterval(() =&gt; {\n  setSeconds(s =&gt; s + 1);\n}, 1000);\n</code></pre>\n<ul>\n<li><code>setInterval(回调函数, 间隔毫秒数)</code>：每隔一段时间执行一次回调</li>\n<li><code>1000</code> 毫秒 = 1 秒</li>\n<li>每秒执行一次 <code>setSeconds(s =&gt; s + 1)</code></li>\n<li>返回一个 id，用来 <code>clearInterval(id)</code> 停止定时器</li>\n</ul>\n<h3 id=\"为什么用-s--s--1\">为什么用 `s => s + 1`？</h3><p><code>setInterval</code> 的回调在 1 秒后执行，那时候的 <code>seconds</code> 变量可能是旧值。用函数式更新确保基于最新 state 加 1。</p>\n<hr>\n<h2 id=\"五useEffect-为什么不能是-async\">五、useEffect 为什么不能是 async？</h2><h3 id=\"async-函数的问题\">async 函数的问题</h3><p><code>async</code> 函数<strong>隐式返回 Promise</strong>。</p>\n<p>React 期望 useEffect 返回：</p>\n<ul>\n<li><code>undefined</code>（什么都不返回）</li>\n<li>或者一个 <strong>cleanup 函数</strong></li>\n</ul>\n<p>如果 useEffect 写成 async：</p>\n<pre><code class=\"language-jsx\">useEffect(async () =&gt; {\n  const data = await fetch(...);\n  return () =&gt; { /* cleanup */ };\n}, []);\n</code></pre>\n<p>React 会把这个 Promise 当成 cleanup 函数，结果报错：</p>\n<pre><code class=\"language-text\">Warning: useEffect must not return anything besides a function...\n</code></pre>\n<h3 id=\"正确写法\">正确写法</h3><p>在 useEffect 内部定义 async 函数，然后直接调用：</p>\n<pre><code class=\"language-jsx\">useEffect(() =&gt; {\n  async function fetchUser() {\n    const res = await fetch(...);\n    // ...\n  }\n\n  fetchUser(); // 直接调用，不用 await\n\n  return () =&gt; {\n    // cleanup\n  };\n}, []);\n</code></pre>\n<h3 id=\"为什么-fetchUser-前面不加-await\">为什么 `fetchUser()` 前面不加 await？</h3><p>因为 <code>await</code> 只能在 <code>async</code> 函数里使用。如果在这里写 <code>await fetchUser()</code>，那 useEffect 的回调本身也必须 async，这就又回到了上面的问题。</p>\n<hr>\n<h2 id=\"六AbortController取消未完成的请求\">六、AbortController：取消未完成的请求</h2><pre><code class=\"language-jsx\">useEffect(() =&gt; {\n  const controller = new AbortController();\n\n  async function fetchUser() {\n    const res = await fetch(url, { signal: controller.signal });\n    // ...\n  }\n\n  fetchUser();\n\n  return () =&gt; controller.abort();\n}, [userId]);\n</code></pre>\n<h3 id=\"作用\">作用</h3><p>当 <code>userId</code> 快速变化，或者组件卸载时，取消还没完成的请求，避免：</p>\n<ul>\n<li>内存泄漏</li>\n<li>旧请求覆盖新请求结果（竞态条件）</li>\n</ul>\n<h3 id=\"流程\">流程</h3><pre><code class=\"language-text\">userId = 1\n    ↓\n发起请求 A\n    ↓\nuserId 快速变成 2\n    ↓\n先执行 cleanup：abort 请求 A\n    ↓\n再发起请求 B\n</code></pre>\n<hr>\n<h2 id=\"七依赖数组陷阱\">七、依赖数组陷阱</h2><h3 id=\"错误遗漏依赖\">错误：遗漏依赖</h3><pre><code class=\"language-jsx\">const [count, setCount] = useState(0);\nconst [wrong, setWrong] = useState(0);\n\nuseEffect(() =&gt; {\n  setWrong(count * 2);\n}, []); // ❌ 遗漏 count\n</code></pre>\n<p><code>wrong</code> 永远基于 <code>count</code> 的初始值 <code>0</code> 计算，不会随 <code>count</code> 更新。</p>\n<h3 id=\"正确包含依赖\">正确：包含依赖</h3><pre><code class=\"language-jsx\">useEffect(() =&gt; {\n  setCorrect(count * 2);\n}, [count]); // ✅\n</code></pre>\n<p><code>correct</code> 会在每次 <code>count</code> 变化后重新计算。</p>\n<hr>\n<h2 id=\"八生命周期对比总结\">八、生命周期对比总结</h2><table>\n<thead>\n<tr>\n<th>阶段</th>\n<th>触发条件</th>\n<th>useEffect 写法</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>mount</td>\n<td>组件第一次渲染</td>\n<td><code>useEffect(fn, [])</code></td>\n</tr>\n<tr>\n<td>update</td>\n<td>state/props 变化导致重新渲染</td>\n<td><code>useEffect(fn, [deps])</code></td>\n</tr>\n<tr>\n<td>unmount</td>\n<td>组件从 DOM 移除</td>\n<td><code>useEffect(() =&gt; () =&gt; cleanup, [])</code> 的 cleanup</td>\n</tr>\n</tbody></table>\n<hr>\n",
+    "contentFile": "useEffect与副作用学习笔记.md"
+  },
+  {
+    "slug": "示例/测试/html测试",
+    "title": "事件发布作用 - Kimi",
+    "date": "2026-08-23",
+    "excerpt": "事件发布作用 - Kimi @font-face{font-family:KaTeX_AMS;font-style:normal;font-weight:400;src:url(data:font/woff2;base64,d09GMgABAAAAAG2sAA4AAAAA+ZAAAG1TAAEAAAAAAAAAAAAA…",
+    "path": [
+      "示例",
+      "测试",
+      "html测试"
+    ],
+    "type": "html",
+    "contentFile": "伏笔-不会遥遥无期-事件发布作用 - Kimi (2026_8_18 11：07：33).html"
+  },
+  {
+    "slug": "示例/测试/端到端测试",
+    "title": "端到端测试文章",
+    "date": "2026-08-23",
+    "excerpt": "这是用于端到端测试的文章，验证 push 后 CI 能自动构建并部署到 GitHub Pages。",
+    "path": [
+      "示例",
+      "测试",
+      "端到端测试"
+    ],
+    "type": "md",
+    "content": "<h1 id=\"端到端测试文章\">端到端测试文章</h1><p>如果你在线上看到了这篇文章，说明整个 CI/CD 流程已经跑通！</p>\n<h2 id=\"测试内容\">测试内容</h2><ul>\n<li>Markdown 构建脚本正确生成 <code>src/posts.json</code></li>\n<li>GitHub Actions 成功构建并部署到 <code>gh-pages</code></li>\n<li>文章列表按日期倒序排列</li>\n<li>代码高亮正常工作：</li>\n</ul>\n<pre><code class=\"language-python\">print(&quot;Hello, CI/CD!&quot;)\n</code></pre>\n<blockquote>\n<p>自动化部署让写作回归纯粹。</p>\n</blockquote>\n",
+    "contentFile": "index.md"
+  },
+  {
+    "slug": "示例/测试/Hello World",
+    "title": "Hello World",
+    "date": "2026-08-22",
+    "excerpt": "这是第一篇示例文章，用来验证 Markdown 构建脚本与 React 页面是否能正常工作。",
+    "path": [
+      "示例",
+      "测试",
+      "Hello World"
+    ],
+    "type": "md",
+    "content": "<h1 id=\"Hello-World\">Hello World</h1><p><img src=\"/Yue021130/images/posts/%E7%A4%BA%E4%BE%8B/%E6%B5%8B%E8%AF%95/Hello%20World/hello-world-cover.png\" alt=\"封面\"></p>\n<p>欢迎来到自研 Markdown 博客！</p>\n<h2 id=\"特性\">特性</h2><ul>\n<li>使用 React + Vite 构建</li>\n<li>Markdown 在构建时解析为 HTML</li>\n<li>自动部署到 GitHub Pages</li>\n<li>文章评论基于 Giscus</li>\n</ul>\n<p>下面是一段示例代码：</p>\n<pre><code class=\"language-js\">console.log(&#39;Hello, blog!&#39;);\n</code></pre>\n<p>祝你写作愉快！</p>\n",
+    "contentFile": "index.md"
+  }
+]
