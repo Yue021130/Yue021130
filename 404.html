@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found</title>
+    <script>
+      // Single Page Apps for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      const segment = 1;
+      const repo = 'Yue021130';
+      const l = window.location;
+      const pathname = l.pathname.split('/').slice(segment + 1).join('/');
+      const redirect = l.origin + '/' + repo + '/?p=/' + pathname + l.search + l.hash;
+      if (pathname) {
+        l.replace(redirect);
+      }
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
