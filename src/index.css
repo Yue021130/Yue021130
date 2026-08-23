@@ -5,8 +5,16 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply antialiased;
+    background-color: #f7f5f0;
+    color: #2d2a26;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+      Arial, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   }
 
   #root {
@@ -16,14 +24,16 @@
 
 @layer components {
   .post-content {
-    @apply text-lg leading-relaxed text-gray-800;
+    @apply text-base leading-8;
+    color: #2d2a26;
   }
 
   .post-content h1,
   .post-content h2,
   .post-content h3,
   .post-content h4 {
-    @apply font-semibold text-gray-900 mt-8 mb-4;
+    @apply font-serif font-semibold mt-10 mb-5;
+    color: #1a1a1a;
   }
 
   .post-content h1 {
@@ -38,13 +48,17 @@
     @apply text-xl;
   }
 
+  .post-content h4 {
+    @apply text-lg;
+  }
+
   .post-content p {
-    @apply mb-5;
+    @apply mb-6;
   }
 
   .post-content ul,
   .post-content ol {
-    @apply pl-6 mb-5;
+    @apply pl-6 mb-6;
   }
 
   .post-content ul {
@@ -60,11 +74,17 @@
   }
 
   .post-content a {
-    @apply text-blue-600 hover:underline;
+    @apply underline decoration-1 underline-offset-2;
+    color: #2563eb;
+  }
+
+  .post-content a:hover {
+    color: #1d4ed8;
   }
 
   .post-content pre {
-    @apply p-4 rounded-lg overflow-x-auto mb-5 border border-gray-200;
+    @apply p-4 rounded-lg overflow-x-auto mb-6;
+    background-color: #e8e6e1;
   }
 
   .post-content code {
@@ -76,14 +96,46 @@
   }
 
   .post-content :not(pre) > code {
-    @apply bg-gray-100 text-red-600 px-1.5 py-0.5 rounded;
+    @apply px-1.5 py-0.5 rounded;
+    background-color: #e8e6e1;
+    color: #c2410c;
   }
 
   .post-content blockquote {
-    @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 mb-5;
+    @apply border-l-4 pl-5 pr-4 py-3 italic mb-6 rounded-r;
+    background-color: #f0eee9;
+    border-color: #d1cec7;
+    color: #55514b;
+  }
+
+  .post-content mark {
+    @apply px-1 py-0.5 rounded-sm;
+    background-color: #fde047;
+    color: #1a1a1a;
   }
 
   .post-content img {
-    @apply rounded-lg max-w-full h-auto;
+    @apply rounded-lg max-w-full h-auto mx-auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08),
+      0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  }
+
+  .post-content hr {
+    @apply my-8;
+    border-color: #d1cec7;
+  }
+
+  .post-content table {
+    @apply w-full border-collapse mb-6;
+  }
+
+  .post-content th,
+  .post-content td {
+    @apply border px-3 py-2 text-left;
+    border-color: #d1cec7;
+  }
+
+  .post-content th {
+    background-color: #f0eee9;
   }
 }

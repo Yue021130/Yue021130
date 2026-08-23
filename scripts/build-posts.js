@@ -80,6 +80,18 @@ function isExternalUrl(href) {
   return /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(href);
 }
 
+function slugify(text) {
+  return stripHtml(text)
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-zA-Z0-9\u4e00-\u9fa5-]/g, '')
+    || 'heading';
+}
+
+function applyHighlightSyntax(content) {
+  return content.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+}
+
 function rewriteImageHref(href, postRelPosix) {
   if (!href || isExternalUrl(href) || href.startsWith('/')) {
     return href;
@@ -95,6 +107,10 @@ function createRenderer(postRelPosix) {
   renderer.image = function (token) {
     token.href = rewriteImageHref(token.href, postRelPosix);
     return defaultImage.call(this, token);
+  };
+  renderer.heading = function (token) {
+    const id = slugify(token.text);
+    return `<h${token.depth} id="${id}">${token.text}</h${token.depth}>`;
   };
   return renderer;
 }
@@ -130,7 +146,8 @@ const posts = mdFiles
     const relPosix = toPosix(relative);
     const slug = relPosix.replace(/\.md$/i, '');
     const renderer = createRenderer(relPosix);
-    const html = marked.parse(parsed.content, { renderer, async: false });
+    const contentWithHighlights = applyHighlightSyntax(parsed.content);
+    const html = marked.parse(contentWithHighlights, { renderer, async: false });
     const title = parsed.data.title || slug;
     const date = formatDate(parsed.data.date || fs.statSync(file).mtime);
     const excerpt =
