@@ -9,9 +9,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const postsDir = path.resolve(__dirname, '../posts');
-const outputPath = path.resolve(__dirname, '../src/posts.json');
+const outputPath = path.resolve(__dirname, '../public/posts.json');
 const feedPath = path.resolve(__dirname, '../public/feed.xml');
 const assetsDestDir = path.resolve(__dirname, '../public/images/posts');
+const htmlPostsDestDir = path.resolve(__dirname, '../public/posts-html');
 const basePath = '/Yue021130';
 const siteUrl = `https://yue021130.github.io${basePath}`;
 
@@ -161,17 +162,59 @@ function copyPostAssets(postDir, slug) {
   return copied;
 }
 
+function copyHtmlPostFolder(postDir, slug, contentFile) {
+  const destDir = path.join(htmlPostsDestDir, slug);
+  fs.mkdirSync(destDir, { recursive: true });
+
+  for (const name of fs.readdirSync(postDir)) {
+    const full = path.join(postDir, name);
+    const stat = fs.statSync(full);
+    if (!stat.isFile()) continue;
+    fs.copyFileSync(full, path.join(destDir, name));
+  }
+
+  return { destDir, contentFile };
+}
+
 function parseTitleFromHtml(html) {
   const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
   return match ? match[1].trim() : '';
+}
+
+function extractBase64Images(html, slug) {
+  const regex = /<img[^>]+src=["'](data:image\/([a-zA-Z0-9+]+);base64,([^"']+))["']/gi;
+  let result = html;
+  let match;
+  let index = 0;
+
+  while ((match = regex.exec(html)) !== null) {
+    const fullSrc = match[1];
+    const mime = match[2];
+    const base64 = match[3];
+    const ext = mime === 'image/jpeg' ? 'jpg' : mime.replace('image/', '');
+    const filename = `embedded-${index}.${ext}`;
+    const dir = path.join(assetsDestDir, slug);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, filename), Buffer.from(base64, 'base64'));
+    const url = `${basePath}/images/posts/${slug}/${filename}`;
+    result = result.replace(fullSrc, url);
+    index++;
+  }
+
+  return result;
 }
 
 // Clean generated assets
 if (fs.existsSync(assetsDestDir)) {
   fs.rmSync(assetsDestDir, { recursive: true, force: true });
 }
+if (fs.existsSync(htmlPostsDestDir)) {
+  fs.rmSync(htmlPostsDestDir, { recursive: true, force: true });
+}
 
 const postFolders = findPostFolders(postsDir);
+
+const validationErrors = [];
 
 const posts = postFolders
   .map(({ dir, contentFile }) => {
@@ -187,37 +230,65 @@ const posts = postFolders
     let excerpt;
     let html;
 
+    let contentFileName = contentFile;
+
     if (isHtml) {
-      const raw = fs.readFileSync(contentPath, 'utf-8');
+      let raw = fs.readFileSync(contentPath, 'utf-8');
+      raw = extractBase64Images(raw, slug);
       html = raw;
       title = parseTitleFromHtml(raw) || folderName;
       date = formatDate(fs.statSync(contentPath).mtime);
       excerpt = stripHtml(raw).slice(0, 160).replace(/\s+$/, '') + '…';
+      const { destDir } = copyHtmlPostFolder(dir, slug, contentFile);
+      // 覆盖复制后的 HTML，确保内嵌 base64 图片也被替换为线上路径
+      fs.writeFileSync(path.join(destDir, contentFile), raw, 'utf-8');
     } else {
       const raw = fs.readFileSync(contentPath, 'utf-8');
       const parsed = matter(raw);
+
+      if (!parsed.data.title) {
+        validationErrors.push(`${toPosix(path.relative(postsDir, contentPath))}: 缺少 frontmatter.title`);
+      }
+      if (!parsed.data.date) {
+        validationErrors.push(`${toPosix(path.relative(postsDir, contentPath))}: 缺少 frontmatter.date`);
+      }
+      if (!parsed.data.excerpt) {
+        validationErrors.push(`${toPosix(path.relative(postsDir, contentPath))}: 缺少 frontmatter.excerpt`);
+      }
+
       const renderer = createRenderer(slug);
       const contentWithHighlights = applyHighlightSyntax(parsed.content);
       html = marked.parse(contentWithHighlights, { renderer, async: false });
+      html = extractBase64Images(html, slug);
       title = parsed.data.title || folderName;
       date = formatDate(parsed.data.date || fs.statSync(contentPath).mtime);
       excerpt =
         parsed.data.excerpt || stripHtml(html).slice(0, 160).replace(/\s+$/, '') + '…';
+      copyPostAssets(dir, slug);
     }
-
-    copyPostAssets(dir, slug);
 
     return {
       slug,
       title,
       date,
       excerpt,
-      content: html,
       path: pathParts,
       type: isHtml ? 'html' : 'md',
+      ...(isHtml ? {} : { content: html }),
+      contentFile: contentFileName,
     };
   })
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+if (validationErrors.length > 0) {
+  console.error('\n❌ 以下文章缺少 frontmatter，请补充后再构建：\n');
+  for (const err of validationErrors) {
+    console.error(`  - ${err}`);
+  }
+  console.error('\n示例格式：');
+  console.error('---\ntitle: 文章标题\ndate: 2026-08-23\nexcerpt: 摘要内容\n---\n');
+  process.exit(1);
+}
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, JSON.stringify(posts, null, 2), 'utf-8');

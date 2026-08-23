@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import posts from '../posts.json';
+import usePosts from '../hooks/usePosts';
 
 function encodeSlug(slug) {
   return slug
@@ -34,10 +34,7 @@ function PostLink({ post }) {
       <span className="font-medium" style={{ color: '#1a1a1a' }}>
         {post.title}
       </span>
-      <time
-        className="block text-xs mt-0.5"
-        style={{ color: '#8a8680' }}
-      >
+      <time className="block text-xs mt-0.5" style={{ color: '#8a8680' }}>
         {post.date}
       </time>
     </Link>
@@ -86,6 +83,16 @@ function MenuNode({ name, node, defaultOpen = false }) {
 }
 
 export default function Home() {
+  const posts = usePosts();
+
+  if (posts === null) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-12" style={{ color: '#8a8680' }}>
+        加载中……
+      </div>
+    );
+  }
+
   const tree = buildTree(posts);
 
   return (

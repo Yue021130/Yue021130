@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import posts from '../posts.json';
+import usePosts from '../hooks/usePosts';
 import GiscusComments from '../components/Giscus';
 
 function TableOfContents({ content }) {
@@ -51,6 +51,31 @@ function TableOfContents({ content }) {
   );
 }
 
+function HtmlSnapshot({ slug, contentFile }) {
+  const src = `${import.meta.env.BASE_URL}posts-html/${slug
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/')}/${encodeURIComponent(contentFile)}`;
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        backgroundColor: '#fffefb',
+        border: '1px solid #e5e2dc',
+      }}
+    >
+      <iframe
+        src={src}
+        title="博文快照"
+        className="w-full"
+        style={{ minHeight: '80vh', border: 'none' }}
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
 function Breadcrumb({ path }) {
   return (
     <nav className="text-sm mb-6" style={{ color: '#8a8680' }}>
@@ -70,6 +95,7 @@ function Breadcrumb({ path }) {
 export default function Post() {
   const routeParams = useParams();
   const location = useLocation();
+  const posts = usePosts();
 
   // routeParams['*'] is URL-decoded path after /post/
   const routePath = (routeParams['*'] || '').replace(/\/$/, '');
@@ -77,9 +103,18 @@ export default function Post() {
     location.pathname.replace(/^.*\/post\//, '').replace(/\/$/, '')
   );
 
-  const post =
-    posts.find((p) => p.slug === routePath) ||
-    posts.find((p) => p.slug === pathnameSlug);
+  const post = posts
+    ? posts.find((p) => p.slug === routePath) ||
+      posts.find((p) => p.slug === pathnameSlug)
+    : null;
+
+  if (posts === null) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-20 text-center text-[#5a5752]">
+        文章加载中…
+      </div>
+    );
+  }
 
   if (!post) {
     return (
@@ -93,19 +128,25 @@ export default function Post() {
     );
   }
 
+  const isHtml = post.type === 'html';
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 flex gap-10">
-      <TableOfContents content={post.content} />
+      {!isHtml && <TableOfContents content={post.content} />}
       <article className="flex-1 min-w-0 max-w-3xl">
         <Breadcrumb path={post.path} />
         <h1 className="text-3xl md:text-4xl font-serif font-semibold text-[#1a1a1a] mb-4">
           {post.title}
         </h1>
         <time className="text-sm text-[#8a8680] block mb-10">{post.date}</time>
-        <div
-          className="post-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        {isHtml ? (
+          <HtmlSnapshot slug={post.slug} contentFile={post.contentFile} />
+        ) : (
+          <div
+            className="post-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        )}
         <GiscusComments />
       </article>
     </div>

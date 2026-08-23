@@ -1,3 +1,9 @@
+---
+title: useEffect 与副作用学习笔记
+date: 2026-08-23
+excerpt: 基于 04-lifecycle 项目中的 Timer、DataFetchDemo、DependencyTrap 整理，掌握 useEffect 执行时机与 cleanup。
+---
+
 ![488B757EDDABD0C3B99C6D57CDCFCCCE](488B757EDDABD0C3B99C6D57CDCFCCCE.png)
 
 

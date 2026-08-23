@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import posts from '../posts.json';
+import usePosts from '../hooks/usePosts';
 
 function encodeSlug(slug) {
   return slug
@@ -20,6 +20,16 @@ function groupByDate(postsList) {
 }
 
 export default function Archive() {
+  const posts = usePosts();
+
+  if (posts === null) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-12" style={{ color: '#8a8680' }}>
+        加载中……
+      </div>
+    );
+  }
+
   const sortedPosts = [...posts].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );

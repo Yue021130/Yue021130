@@ -7,7 +7,8 @@
 - 用户日常只操作 `posts/` 目录，push 后全自动构建、部署。
 - `posts/` 采用**三级菜单目录结构**：一级菜单 / 二级菜单 / 帖子文件夹。
 - Markdown 在**构建时**解析为 HTML；也支持直接放 `.html` 文件。
-- 构建脚本生成 `src/posts.json`，首页据此渲染可展开的三级菜单树。
+- 构建脚本生成 `public/posts.json`，运行时通过 `usePosts()` hook 加载，首页据此渲染可展开的三级菜单树。
+- HTML 博文快照采用 **iframe 隔离渲染**：叶子文件夹整份复制到 `public/posts-html/<slug>/`，文章页用 `<iframe>` 加载，原始样式与图片路径都能保留，且不污染博客主题。
 - 评论系统基于 **Giscus**（GitHub Discussions）。
 - 代码高亮基于 **highlight.js**。
 - 自动生成 **RSS feed**（`public/feed.xml`）。
@@ -31,19 +32,24 @@
 │   │   └── ...
 │   └── ...
 ├── public/                        # 静态资源
-│   └── images/posts/              # 构建产物：从 posts/ 复制过来的图片
+│   ├── posts.json                 # 构建产物：文章索引（Markdown 内容 / HTML 元信息）
+│   ├── feed.xml                   # 构建产物：RSS
+│   ├── images/posts/              # 构建产物：从 posts/ 复制过来的图片
+│   └── posts-html/                # 构建产物：HTML 博文快照整文件夹复制
 ├── scripts/
-│   └── build-posts.js             # 解析 posts/，生成 src/posts.json 和 public/feed.xml
+│   └── build-posts.js             # 解析 posts/，生成 public/posts.json 和 public/feed.xml
 ├── src/
 │   ├── App.jsx
 │   ├── components/
 │   │   └── Giscus.jsx             # 原生 script 注入 Giscus 评论
+│   ├── hooks/
+│   │   └── usePosts.js            # 运行时 fetch public/posts.json
 │   ├── index.css                  # 全局 + 文章排版样式
 │   ├── main.jsx
-│   ├── pages/
-│   │   ├── Home.jsx               # 三级菜单树首页
-│   │   └── Post.jsx               # 文章详情（含面包屑、目录）
-│   └── posts.json                 # 构建产物，gitignore
+│   └── pages/
+│       ├── Home.jsx               # 三级菜单树首页
+│       ├── Archive.jsx            # 按年月归档
+│       └── Post.jsx               # 文章详情（含面包屑、目录、HTML iframe）
 ├── index.html
 ├── package.json
 ├── tailwind.config.js
@@ -115,6 +121,12 @@ const ref = useRef(null);
 
 直接把 `.html` 文件放进叶子文件夹即可。标题优先读取 `<title>` 标签，否则使用文件夹名。
 
+HTML 快照会被整体复制到 `public/posts-html/<slug>/`，文章页通过 `<iframe>` 加载。这样做的好处：
+
+- 快照自带样式、脚本、图片，不会污染博客主题。
+- 相对路径引用的图片/资源能正常解析。
+- 博客主 bundle 不膨胀，因为 HTML 内容不会塞进 `posts.json`。
+
 ### 图片
 
 图片放在帖子文件夹内，用相对路径引用：
@@ -168,6 +180,10 @@ REPOSITORY_NAME=Yue021130 npm run build
 
 如需修改，编辑 `src/components/Giscus.jsx` 中的 `GISCUS_CONFIG`。
 
+## 按时间归档
+
+访问 `/archive` 可查看按年月分组的文章列表。`build-posts.js` 在构建时从每篇文章的 `date` 字段提取年份和月份，前端直接按分组渲染。
+
 ## RSS 订阅
 
 `https://yue021130.github.io/Yue021130/feed.xml`
@@ -186,5 +202,5 @@ REPOSITORY_NAME=Yue021130 npm run build
 
 ## 注意事项
 
-- `src/posts.json`、`public/feed.xml`、`public/images/posts/` 是构建产物，已被 `.gitignore` 忽略，不需要手动提交。
+- `public/posts.json`、`public/feed.xml`、`public/images/posts/`、`public/posts-html/` 是构建产物，已被 `.gitignore` 忽略，不需要手动提交。
 - 如果切换 GitHub Pages Source，请确保与 `.github/workflows/deploy.yml` 中的部署方式一致。
