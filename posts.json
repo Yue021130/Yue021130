@@ -1,8 +1,21 @@
 [
   {
+    "slug": "Linux/PID排查",
+    "title": "Linux 端口排查与管理速查表",
+    "date": "2026-08-25",
+    "excerpt": "端口 - 防火墙 - 进程 排查",
+    "path": [
+      "Linux",
+      "PID排查"
+    ],
+    "type": "md",
+    "content": "<h1 id=\"Linux-端口排查与管理速查表\">Linux 端口排查与管理速查表</h1><p>围绕 <strong>「查看端口 → 管理防火墙 → 定位进程」</strong> 这一完整链路，汇总所有命令：</p>\n<hr>\n<h2 id=\"一查看系统开放端口\">一、查看系统开放端口</h2><table>\n<thead>\n<tr>\n<th>目的</th>\n<th>命令</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>查看所有监听端口（推荐）</td>\n<td><code>ss -tulnp</code></td>\n</tr>\n<tr>\n<td>只看 TCP 监听</td>\n<td><code>ss -tlnp</code></td>\n</tr>\n<tr>\n<td>只看 UDP 监听</td>\n<td><code>ss -ulnp</code></td>\n</tr>\n<tr>\n<td>传统方式查看</td>\n<td><code>sudo netstat -tulnp</code></td>\n</tr>\n<tr>\n<td>查看端口被哪个进程占用</td>\n<td><code>sudo lsof -i :&lt;端口&gt;</code></td>\n</tr>\n<tr>\n<td>本机扫描开放端口</td>\n<td><code>sudo nmap -sT -O localhost</code></td>\n</tr>\n</tbody></table>\n<hr>\n<h2 id=\"二UFW-防火墙管理\">二、UFW 防火墙管理</h2><table>\n<thead>\n<tr>\n<th>目的</th>\n<th>命令</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>查看当前放行规则</td>\n<td><code>sudo ufw status</code></td>\n</tr>\n<tr>\n<td>查看带编号的规则</td>\n<td><code>sudo ufw status numbered</code></td>\n</tr>\n<tr>\n<td><strong>开放一个端口</strong></td>\n<td><code>sudo ufw allow &lt;端口&gt;/tcp</code></td>\n</tr>\n<tr>\n<td><strong>关闭/删除一个端口</strong></td>\n<td><code>sudo ufw delete allow &lt;端口&gt;/tcp</code></td>\n</tr>\n<tr>\n<td>按编号删除规则</td>\n<td><code>sudo ufw delete &lt;编号&gt;</code></td>\n</tr>\n<tr>\n<td>只允许特定 IP 访问</td>\n<td><code>sudo ufw allow from &lt;IP&gt; to any port &lt;端口&gt;</code></td>\n</tr>\n<tr>\n<td>拒绝某端口</td>\n<td><code>sudo ufw deny &lt;端口&gt;/tcp</code></td>\n</tr>\n</tbody></table>\n<hr>\n<h2 id=\"三根据-PID-定位进程详情\">三、根据 PID 定位进程详情</h2><table>\n<thead>\n<tr>\n<th>目的</th>\n<th>命令</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>查看进程基本信息</td>\n<td><code>ps -p &lt;PID&gt; -f</code></td>\n</tr>\n<tr>\n<td>查看进程详细信息</td>\n<td><code>ps -p &lt;PID&gt; -F</code></td>\n</tr>\n<tr>\n<td>查看进程打开的文件/端口</td>\n<td><code>sudo lsof -p &lt;PID&gt;</code></td>\n</tr>\n<tr>\n<td>查看进程状态（内存、线程等）</td>\n<td><code>cat /proc/&lt;PID&gt;/status</code></td>\n</tr>\n<tr>\n<td>查看进程启动命令</td>\n<td><code>cat /proc/&lt;PID&gt;/cmdline | tr &#39;\\0&#39; &#39; &#39;</code></td>\n</tr>\n<tr>\n<td>查看进程工作目录</td>\n<td><code>pwdx &lt;PID&gt;</code> 或 <code>ls -l /proc/&lt;PID&gt;/cwd</code></td>\n</tr>\n<tr>\n<td>查看进程可执行文件</td>\n<td><code>ls -l /proc/&lt;PID&gt;/exe</code></td>\n</tr>\n<tr>\n<td>实时监控该进程</td>\n<td><code>top -p &lt;PID&gt;</code></td>\n</tr>\n</tbody></table>\n<hr>\n<h2 id=\"四完整排查流程示例\">四、完整排查流程示例</h2><pre><code class=\"language-bash\"># 1. 发现可疑端口 8003\nsudo ss -tulnp | grep 8003\n\n# 2. 找到占用该端口的 PID\nsudo lsof -i :8003\n\n# 3. 根据 PID 查看进程详情\nps -p &lt;PID&gt; -F\nsudo lsof -p &lt;PID&gt;\n\n# 4. 决定是否通过防火墙关闭\nsudo ufw delete allow 8003/tcp\nsudo ufw status\n</code></pre>\n",
+    "contentFile": "进程排查.md"
+  },
+  {
     "slug": "示例/测试/html测试",
     "title": "事件发布作用 - Kimi",
-    "date": "2026-08-24",
+    "date": "2026-08-25",
     "excerpt": "事件发布作用 - Kimi @font-face{font-family:KaTeX_AMS;font-style:normal;font-weight:400;src:url(data:font/woff2;base64,d09GMgABAAAAAG2sAA4AAAAA+ZAAAG1TAAEAAAAAAAAAAAAA…",
     "path": [
       "示例",
